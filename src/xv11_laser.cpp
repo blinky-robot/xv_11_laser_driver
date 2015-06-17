@@ -161,14 +161,12 @@ namespace xv_11_laser_driver {
                 {
                     if (b == 0xFA)
                     {
-                        printf("Found second 0xFA after 21 bytes. Starting scan.\n");
                         fsm_state = 2;
                         packet_byte_count = 1;
                         raw_bytes[0] = 0xFA;
                     }
                     else
                     {
-                        printf("Did not find second 0xFA after 21 bytes\n");
                         fsm_state = 0;
                     }
                 }
@@ -183,32 +181,30 @@ namespace xv_11_laser_driver {
                 
                 if (packet_byte_count == 22)
                 {
-                    // print entire packet
+                    /*// print entire packet
                     for (int foo = 0; foo < 22; foo++)
                     {
                         printf("%X ", raw_bytes[foo]);
                     }
                     printf("\n");
-                    
+                    */
+
                     packet_byte_count = 0;
                     
                     if (raw_bytes[0] != 0xFA)
                     {
-                        printf("error, restarting FSM");
                         fsm_state = 0;
                     }
                   
                     // process packet
                     if (++packets_read_count == 90)
                     {
-                        printf("scan complete!\n");
                         got_scan = 1;
                     }
                     
                     index = raw_bytes[1] - 0xA0;
-                    rpms = (raw_bytes[3] <<8 | raw_bytes[2])/64;
-                    printf("Index:%d Speed:%d ", index, rpms);
-                    
+                    rpms = (raw_bytes[3] << 8 | raw_bytes[2])/64;
+             
                     for (int i = 0; i < 4; i++)
                     {
                         uint8_t byte1 = raw_bytes[4 + 4*i];
@@ -235,21 +231,14 @@ namespace xv_11_laser_driver {
                         
                         uint16_t intensity = (byte4 << 8) | byte3;
                         
-                        printf("range_%d: %d ", i, range);
-                        printf("int_%d: %d ", i, intensity);
-                        
                         scan->ranges[4*index + i] = range / 1000.0;
                         scan->intensities[4*index + i] = intensity;
                     }
                     
-                    printf("\n");
-                    
+                    scan->scan_time = 60.0 / rpms;
+                    scan->time_increment = scan->scan_time / 360.0;
+
                     // TODO: verify checksum
-                    // TODO: set scan->time_increment
-                    //   was previously:
-                    //   good_sets++;
-                    //   motor_speed += (raw_bytes[i+3] << 8) + raw_bytes[i+2]; //accumulate count for avg. time increment
-                    //   scan->time_increment = motor_speed/good_sets/1e8;
                 }
             }
             else
