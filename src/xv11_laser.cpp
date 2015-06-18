@@ -149,7 +149,7 @@ namespace xv_11_laser_driver {
                 // lost... wait for first 0xFA to come in
                 if(b == 0xFA)
                 {
-                    printf("Found first 0xFA byte\n");
+                    //printf("Found first 0xFA byte\n");
                     fsm_state = 1;
                     packet_byte_count = 0;
                 }
